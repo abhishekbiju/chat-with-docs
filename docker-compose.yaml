@@ -1,0 +1,10 @@
+services:
+  api:
+    build: .
+    container_name: rag_api
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./app/chroma_db:/code/app/chroma_db
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
