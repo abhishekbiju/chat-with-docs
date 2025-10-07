@@ -18,7 +18,7 @@ This project is a locally-hosted application that allows you to chat with your o
 Follow these steps to get the project running on your local machine.
 
 1.  **Clone the Repository**
-    Open your terminal and clone the project files.
+    Open the terminal and clone the project files.
     ```bash
     git clone <your-repository-url>
     cd <repository-name>
