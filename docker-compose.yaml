@@ -4,7 +4,11 @@ services:
     container_name: rag_api
     ports:
       - "8080:8080"
+    environment:
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+      LLM_MODEL: mistral
     volumes:
       - ./app/chroma_db:/code/app/chroma_db
+      - ./documents:/code/documents:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"

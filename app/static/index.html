@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chat with Docs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0c0e12;
+      --surface: #141820;
+      --border: #252b38;
+      --text: #e8ecf4;
+      --muted: #8b95a8;
+      --accent: #5b8def;
+      --accent-dim: #3d5a8a;
+      --success: #3ecf8e;
+      --radius: 12px;
+      --font: "DM Sans", system-ui, sans-serif;
+      --mono: "JetBrains Mono", ui-monospace, monospace;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font);
+      background: radial-gradient(1200px 600px at 10% -10%, #1a2240 0%, transparent 55%), var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .layout {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 1.5rem 1.25rem 3rem;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      gap: 1rem;
+    }
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.35rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    .sub {
+      margin: 0.25rem 0 0;
+      font-size: 0.85rem;
+      color: var(--muted);
+      max-width: 36rem;
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .toolbar label { display: flex; align-items: center; gap: 0.35rem; cursor: pointer; user-select: none; }
+    .toolbar input[type="checkbox"] { accent-color: var(--accent); }
+    .toolbar select {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.35rem 0.5rem;
+      font-family: var(--font);
+      font-size: 0.8rem;
+    }
+    .status-pill {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .status-pill.ok { border-color: var(--accent-dim); color: var(--accent); }
+    .status-pill.warn { border-color: #6a4a2a; color: #e8a454; }
+    #messages {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      min-height: 200px;
+      overflow-y: auto;
+      padding: 0.25rem 0;
+    }
+    .bubble {
+      border-radius: var(--radius);
+      padding: 1rem 1.1rem;
+      max-width: 100%;
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .bubble.user {
+      align-self: flex-end;
+      background: #1a2332;
+      border-color: #2a3a52;
+    }
+    .bubble.assistant { align-self: stretch; }
+    .bubble .role {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+    }
+    .bubble .body { white-space: pre-wrap; word-break: break-word; }
+    .sources {
+      margin-top: 0.85rem;
+      padding-top: 0.85rem;
+      border-top: 1px dashed var(--border);
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .sources summary { cursor: pointer; color: var(--accent); font-weight: 500; }
+    .source-card {
+      margin-top: 0.5rem;
+      padding: 0.5rem 0.65rem;
+      border-radius: 8px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+    }
+    .composer {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid var(--border);
+    }
+    textarea {
+      width: 100%;
+      min-height: 88px;
+      resize: vertical;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 0.95rem;
+      padding: 0.75rem 1rem;
+      outline: none;
+    }
+    textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(91, 141, 239, 0.2); }
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      justify-content: space-between;
+    }
+    button {
+      font-family: var(--font);
+      font-weight: 600;
+      font-size: 0.9rem;
+      border: none;
+      border-radius: 10px;
+      padding: 0.55rem 1.25rem;
+      cursor: pointer;
+      background: linear-gradient(135deg, #5b8def, #4a6fc9);
+      color: #fff;
+    }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    button.secondary {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    a.docs { color: var(--accent); font-size: 0.8rem; text-decoration: none; }
+    a.docs:hover { text-decoration: underline; }
+    .error { color: #f08080; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <header>
+      <div>
+        <h1>Chat with Docs</h1>
+        <p class="sub">Ask questions grounded in your PDFs and text files. Answers include source excerpts when available.</p>
+      </div>
+      <div class="toolbar">
+        <span id="ready-pill" class="status-pill">Checking…</span>
+        <label><input type="checkbox" id="stream-toggle" checked /> Stream tokens</label>
+        <label><input type="checkbox" id="mmr-toggle" /> MMR diversity</label>
+        <label>
+          Chunks
+          <select id="k-select">
+            <option>3</option>
+            <option selected>4</option>
+            <option>6</option>
+            <option>8</option>
+          </select>
+        </label>
+        <a class="docs" href="/docs" target="_blank" rel="noopener">Open API docs</a>
+      </div>
+    </header>
+    <div id="messages"></div>
+    <p id="err" class="error" hidden></p>
+    <div class="composer">
+      <textarea id="q" placeholder="Ask something about your ingested documents…" rows="3"></textarea>
+      <div class="row">
+        <div>
+          <button type="button" id="send">Send</button>
+          <button type="button" class="secondary" id="clear">Clear chat</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const messagesEl = document.getElementById("messages");
+    const qEl = document.getElementById("q");
+    const sendBtn = document.getElementById("send");
+    const clearBtn = document.getElementById("clear");
+    const errEl = document.getElementById("err");
+    const readyPill = document.getElementById("ready-pill");
+    const streamToggle = document.getElementById("stream-toggle");
+    const mmrToggle = document.getElementById("mmr-toggle");
+    const kSelect = document.getElementById("k-select");
+
+    let history = [];
+
+    function bubble(role, text, sources) {
+      const wrap = document.createElement("div");
+      wrap.className = "bubble " + (role === "user" ? "user" : "assistant");
+      const roleEl = document.createElement("div");
+      roleEl.className = "role";
+      roleEl.textContent = role === "user" ? "You" : "Assistant";
+      const body = document.createElement("div");
+      body.className = "body";
+      body.textContent = text;
+      wrap.appendChild(roleEl);
+      wrap.appendChild(body);
+      if (sources && sources.length) {
+        const det = document.createElement("details");
+        det.className = "sources";
+        const sum = document.createElement("summary");
+        sum.textContent = "Sources (" + sources.length + ")";
+        det.appendChild(sum);
+        sources.forEach((s) => {
+          const card = document.createElement("div");
+          card.className = "source-card";
+          const meta = [s.source_file, s.page != null ? "p." + s.page : null, s.relevance_score != null ? "dist " + s.relevance_score.toFixed(3) : null]
+            .filter(Boolean)
+            .join(" · ");
+          card.textContent = (meta ? meta + "\n" : "") + (s.excerpt || "");
+          det.appendChild(card);
+        });
+        wrap.appendChild(det);
+      }
+      messagesEl.appendChild(wrap);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+      return body;
+    }
+
+    async function refreshReady() {
+      try {
+        const r = await fetch("/ready");
+        const j = await r.json();
+        const ok = j.ready === true;
+        readyPill.textContent = ok ? "Index + Ollama ready" : "Check index / Ollama";
+        readyPill.className = "status-pill " + (ok ? "ok" : "warn");
+        readyPill.title = JSON.stringify(j);
+      } catch {
+        readyPill.textContent = "Status unknown";
+        readyPill.className = "status-pill warn";
+      }
+    }
+
+    async function sendNonStream(payload) {
+      const r = await fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(data.detail || r.statusText || "Request failed");
+      return data;
+    }
+
+    async function sendStream(payload, bodyEl) {
+      const r = await fetch("/chat/stream", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!r.ok) {
+        const t = await r.text();
+        throw new Error(t || r.statusText);
+      }
+      const reader = r.body.getReader();
+      const dec = new TextDecoder();
+      let buf = "";
+      let full = "";
+      let sources = [];
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        const parts = buf.split("\n\n");
+        buf = parts.pop() || "";
+        for (const block of parts) {
+          const lines = block.split("\n");
+          let event = "message";
+          let dataLine = "";
+          for (const line of lines) {
+            if (line.startsWith("event:")) event = line.slice(6).trim();
+            if (line.startsWith("data:")) dataLine += line.slice(5).trim();
+          }
+          if (!dataLine) continue;
+          if (event === "done") {
+            try {
+              const j = JSON.parse(dataLine);
+              full = j.answer || full;
+              sources = j.sources || [];
+            } catch { /* ignore */ }
+          } else if (event === "error") {
+            try {
+              const j = JSON.parse(dataLine);
+              throw new Error(j.error || "Stream error");
+            } catch (e) {
+              if (e.message) throw e;
+            }
+          } else {
+            try {
+              const j = JSON.parse(dataLine);
+              if (j.token) {
+                full += j.token;
+                bodyEl.textContent = full;
+                messagesEl.scrollTop = messagesEl.scrollHeight;
+              }
+            } catch { /* ignore */ }
+          }
+        }
+      }
+      return { answer: full, sources };
+    }
+
+    sendBtn.addEventListener("click", async () => {
+      errEl.hidden = true;
+      const text = qEl.value.trim();
+      if (!text) return;
+      sendBtn.disabled = true;
+      qEl.value = "";
+      bubble("user", text, null);
+
+      const payload = {
+        query: text,
+        history: history.slice(-24),
+        k_retrieval: parseInt(kSelect.value, 10),
+        use_mmr: mmrToggle.checked,
+      };
+
+      try {
+        if (streamToggle.checked) {
+          const bodyEl = bubble("assistant", "", null);
+          const data = await sendStream(payload, bodyEl);
+          bodyEl.textContent = data.answer;
+          if (data.sources && data.sources.length) {
+            const wrap = bodyEl.closest(".bubble");
+            const det = document.createElement("details");
+            det.className = "sources";
+            const sum = document.createElement("summary");
+            sum.textContent = "Sources (" + data.sources.length + ")";
+            det.appendChild(sum);
+            data.sources.forEach((s) => {
+              const card = document.createElement("div");
+              card.className = "source-card";
+              const meta = [s.source_file, s.page != null ? "p." + s.page : null, s.relevance_score != null ? "dist " + s.relevance_score.toFixed(3) : null]
+                .filter(Boolean)
+                .join(" · ");
+              card.textContent = (meta ? meta + "\n" : "") + (s.excerpt || "");
+              det.appendChild(card);
+            });
+            wrap.appendChild(det);
+          }
+          history.push({ role: "user", content: text }, { role: "assistant", content: data.answer });
+        } else {
+          const data = await sendNonStream(payload);
+          bubble("assistant", data.answer, data.sources);
+          history.push({ role: "user", content: text }, { role: "assistant", content: data.answer });
+        }
+      } catch (e) {
+        errEl.textContent = e.message || String(e);
+        errEl.hidden = false;
+      } finally {
+        sendBtn.disabled = false;
+      }
+    });
+
+    clearBtn.addEventListener("click", () => {
+      history = [];
+      messagesEl.innerHTML = "";
+      errEl.hidden = true;
+    });
+
+    qEl.addEventListener("keydown", (ev) => {
+      if (ev.key === "Enter" && (ev.metaKey || ev.ctrlKey)) {
+        ev.preventDefault();
+        sendBtn.click();
+      }
+    });
+
+    refreshReady();
+    setInterval(refreshReady, 30000);
+  </script>
+</body>
+</html>

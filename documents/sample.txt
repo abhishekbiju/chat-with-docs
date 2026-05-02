@@ -1,0 +1,10 @@
+Chat with Docs — Sample Knowledge Base
+
+This is a short sample document used to verify ingestion and retrieval.
+
+Facts you can cite from this file:
+- The project uses FastAPI for the HTTP API.
+- Retrieval can use MMR for more diverse context chunks.
+- Ollama runs the local language model.
+
+If the user asks about "MMR", explain that it stands for Maximal Marginal Relevance and helps reduce redundant overlapping chunks in the context.
