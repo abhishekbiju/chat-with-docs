@@ -135,6 +135,7 @@ Earlier versions returned raw `context` strings. The API now returns **`sources`
 
 ## Troubleshooting
 
+- **`docker compose`: “Cannot connect to the Docker daemon … docker.sock”** — The Docker engine is not running (or not finished starting). On macOS, open **Docker Desktop** and wait until it is healthy, then run `docker info` to confirm. This message is not from the app; Compose needs a running daemon before any `Dockerfile` is used.
 - **`503` on chat, “vector index is empty”** — Run `python -m app.ingest` after adding files under `documents/`.
 - **`502` / connection errors** — Confirm `ollama serve` is running and `OLLAMA_BASE_URL` matches how the API reaches it (Docker → host gateway).
 - **First ingest is slow** — Downloads `sentence-transformers` weights; use a stable network or a pre-populated `HF_HOME` cache.

@@ -32,6 +32,24 @@ class QueryRequest(BaseModel):
         default=False,
         description="Use Maximal Marginal Relevance for more diverse context.",
     )
+    mmr_lambda_mult: float | None = Field(
+        default=None,
+        ge=0.0,
+        le=1.0,
+        description=(
+            "When use_mmr is true, overrides server MMR lambda (lower = more diversity vs query similarity). "
+            "Omit to use settings default."
+        ),
+    )
+    mmr_fetch_k: int | None = Field(
+        default=None,
+        ge=8,
+        le=200,
+        description=(
+            "When use_mmr is true, raises the similarity candidate pool size (floor with k). "
+            "Use when diverse pillars rank below the default prefetch window."
+        ),
+    )
 
 
 class QueryResponse(BaseModel):

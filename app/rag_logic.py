@@ -101,14 +101,29 @@ class RAGService:
         query: str,
         k: int,
         use_mmr: bool,
+        *,
+        mmr_lambda_mult: float | None = None,
+        mmr_fetch_k: int | None = None,
     ) -> list[tuple[Document, float | None]]:
         k = min(k, 20)
         if use_mmr:
-            fetch_k = min(max(self.settings.mmr_fetch_k, k * 2), 50)
+            # MMR only reorders within the first `fetch_k` similarity hits. A hard cap that is
+            # too small (previously 50) drops semantically relevant but lower-ranked chunks entirely.
+            floor = max(self.settings.mmr_fetch_k, k * 4)
+            if mmr_fetch_k is not None:
+                floor = max(floor, mmr_fetch_k)
+            fetch_cap = 200
+            fetch_k = min(floor, fetch_cap)
+            lam = (
+                self.settings.mmr_lambda_mult
+                if mmr_lambda_mult is None
+                else mmr_lambda_mult
+            )
             docs = self.vectorstore.max_marginal_relevance_search(
                 query,
                 k=k,
                 fetch_k=fetch_k,
+                lambda_mult=lam,
             )
             return [(d, None) for d in docs]
 
@@ -181,7 +196,13 @@ class RAGService:
 
     async def query(self, request: QueryRequest) -> QueryResponse:
         self.ensure_index_ready()
-        retrieved = self.retrieve(request.query.strip(), request.k_retrieval, request.use_mmr)
+        retrieved = self.retrieve(
+            request.query.strip(),
+            request.k_retrieval,
+            request.use_mmr,
+            mmr_lambda_mult=request.mmr_lambda_mult,
+            mmr_fetch_k=request.mmr_fetch_k,
+        )
         context_blocks = [d.page_content for d, _ in retrieved]
         if not context_blocks:
             return QueryResponse(
@@ -196,7 +217,13 @@ class RAGService:
     async def stream_query(self, request: QueryRequest) -> AsyncIterator[str]:
         """Server-Sent Events: `data: {"token": "..."}\\n\\n` then `event: done` with full payload."""
         self.ensure_index_ready()
-        retrieved = self.retrieve(request.query.strip(), request.k_retrieval, request.use_mmr)
+        retrieved = self.retrieve(
+            request.query.strip(),
+            request.k_retrieval,
+            request.use_mmr,
+            mmr_lambda_mult=request.mmr_lambda_mult,
+            mmr_fetch_k=request.mmr_fetch_k,
+        )
         context_blocks = [d.page_content for d, _ in retrieved]
         sources = self.build_sources(retrieved)
 

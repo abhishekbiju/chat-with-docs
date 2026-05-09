@@ -1,0 +1,22 @@
+[
+  {
+    "question": "What is the Aurora plumbus codeword phrase?",
+    "expected_chunk_ids": ["eval_aurora"]
+  },
+  {
+    "question": "Tethys station override PIN digits",
+    "expected_chunk_ids": ["eval_tethys"]
+  },
+  {
+    "question": "Banana inventory count for warehouse 7B",
+    "expected_chunk_ids": ["eval_banana"]
+  },
+  {
+    "question": "Who signed the memo about lunar dust protocols?",
+    "expected_chunk_ids": ["eval_lunar"]
+  },
+  {
+    "question": "Refund policy window for titanium widgets",
+    "expected_chunk_ids": ["eval_refund"]
+  }
+]
